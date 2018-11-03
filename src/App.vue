@@ -31,24 +31,112 @@
                 <transition enter-active-class="animated bounce" leave-active-class="animated shake">
                     <div class="alert alert-info" v-if="show">This is some Info</div>
                 </transition>
+                <transition :name="alertAnimation" mode="out-in">
+                <!-- <transition :name="alertAnimation"> -->
+                    <div class="alert alert-info" v-if="show" key="info">This is some Info</div>
+                    <div class="alert alert-warning" v-else key="warning">This is some Warning</div>
+                </transition>
+                <hr>
+                <button class="btn btn-primary" @click="load = !load">Load / Remove Element</button>
+                <br>
+                <br>
+                <transition
+                    @before-enter="beforeEnter"
+                    @enter="enter"
+                    @after-enter="afterEnter"
+                    @enter-cancelled="enterCancelled"
+
+                    @before-leave="beforeLeave"
+                    @leave="leave"
+                    @after-leave="afterLeave"
+                    @leave-cancelled="leaveCancelled"
+                    :css="false">
+                    <div style="width: 300px; height: 100px; background-color: lightgreen;" v-if="load"></div>
+                </transition>
+                <hr>
+                <button class="btn btn-primary"
+                    @click="selectedComponent == 'app-success-alert' ? selectedComponent = 'app-danger-alert' : selectedComponent = 'app-success-alert'">Toggle Components</button>
+                <br>
+                <br>
+                <transition name="fade" mode="out-in">
+                    <component :is="selectedComponent"></component>
+                </transition>
             </div>
         </div>
     </div>
 </template>
 
 <script>
+    import DangerAlert from './DangerAlert.vue';
+    import SuccessAlert from './SuccessAlert.vue';
+
     export default {
         data() {
             return {
                 // show: false
                 show: true,
-                alertAnimation: 'fade'
+                alertAnimation: 'fade',
+                load: true,
+                elementWidth: 100,
+                selectedComponent: 'app-danger-alert'
             }
         },
         computed: {
             type() {
                 return this.alertAnimation == 'fade' ? 'transition' : 'animation';
             }
+        },
+        methods: {
+            beforeEnter(el) {
+                console.log('beforeEnter');
+                this.elementWidth = 100;
+                el.style.width = this.elementWidth + 'px';
+            },
+            enter(el, done) {
+                console.log('enter');
+                let round = 1;
+                const interval = setInterval(() => {
+                    el.style.width = (this.elementWidth + round * 10) + 'px';
+                    round++;
+                    if(round > 20) {
+                        clearInterval(interval);
+                        done();
+                    }
+                }, 20);
+            },
+            afterEnter(el) {
+                console.log('afterEnter');
+            },
+            enterCancelled(el) {
+                console.log('enterCancelled')
+            },
+            beforeLeave(el) {
+                console.log('beforeLeave');
+                this.elementWidth = 300;
+                el.style.width = this.elementWidth + 'px';
+            },
+            leave(el, done) {
+                console.log('leave');
+                let round = 1;
+                const interval = setInterval(() => {
+                    el.style.width = (this.elementWidth - round * 10) + 'px';
+                    round++;
+                    if(round > 20) {
+                        clearInterval(interval);
+                        done();
+                    }
+                }, 20);
+            },
+            afterLeave(el) {
+                console.log('afterLeave')
+            },
+            leaveCancelled(el) {
+                console.log('leaveCancelled');
+            }
+        },
+        components: {
+            appDangerAlert: DangerAlert,
+            appSuccessAlert: SuccessAlert
         }
     }
 </script>
@@ -86,7 +174,8 @@
 
     .slide-leave-active {
         animation: slide-out 1s ease-out forwards;
-        transition: opacity 3s;
+        /*transition: opacity 3s;*/
+        transition: opacity 1s;
         opacity: 0;
     }
 
